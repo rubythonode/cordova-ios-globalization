@@ -358,10 +358,16 @@
 	// get the user's current time zone information
 	CFTimeZoneRef timezone = (CFTimeZoneRef) CFDateFormatterCopyProperty(formatter, kCFDateFormatterTimeZone);
 	
+    NSError *error = NULL;
+    NSMutableString *datePatternMutable = [[[NSMutableString alloc] initWithString:(NSString *)datePattern] autorelease];
+    
+    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"([^y])(y)([^y])" options:NSRegularExpressionCaseInsensitive error:&error];
+    [regex replaceMatchesInString:datePatternMutable options:0 range:NSMakeRange(0, [datePatternMutable length]) withTemplate:@"$1yyyy$3"];
+    
 	// put the pattern and time zone information into the dictionary
 	if(datePattern != nil && timezone != nil) {
 		NSArray* keys = [NSArray arrayWithObjects:@"pattern",@"timezone",@"utc_offset",@"dst_offset",nil];
-		NSArray* values = [NSArray arrayWithObjects:((NSString*)datePattern),
+		NSArray* values = [NSArray arrayWithObjects:(datePatternMutable),
 						   [((NSTimeZone*) timezone)abbreviation],
 						   [NSNumber numberWithLong:[((NSTimeZone*) timezone)secondsFromGMT]],
 						   [NSNumber numberWithDouble:[((NSTimeZone*) timezone)daylightSavingTimeOffset]],
