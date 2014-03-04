@@ -361,8 +361,25 @@
     NSError *error = NULL;
     NSMutableString *datePatternMutable = [[[NSMutableString alloc] initWithString:(NSString *)datePattern] autorelease];
     
-    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"([^y])(y)([^y])" options:NSRegularExpressionCaseInsensitive error:&error];
-    [regex replaceMatchesInString:datePatternMutable options:0 range:NSMakeRange(0, [datePatternMutable length]) withTemplate:@"$1yyyy$3"];
+    if (dateStyle != kCFDateFormatterNoStyle) {
+        // Fix for date formats with only one y (ea. d/MM/y)
+        NSDictionary *regexPatterns = @{
+                                        @"([^y])(y)([^y])": @"$1yyyy$3",
+                                        @"([^y])(y(?!y))": @"$1yyyy"
+                                        };
+        NSRange regexRange = NSMakeRange(0, [datePatternMutable length]);
+        BOOL isMatch = NO;
+        NSRegularExpression *regex;
+        
+        for (NSString *pattern in [regexPatterns allKeys]) {
+            regex = [NSRegularExpression regularExpressionWithPattern:pattern options:NSRegularExpressionCaseInsensitive error:&error];
+            isMatch = [regex numberOfMatchesInString:datePatternMutable options:0 range:regexRange] > 0;
+            if (isMatch) {
+                [regex replaceMatchesInString:datePatternMutable options:0 range:regexRange withTemplate:[regexPatterns objectForKey:pattern]];
+                break;
+            }
+        }
+    }
     
 	// put the pattern and time zone information into the dictionary
 	if(datePattern != nil && timezone != nil) {
