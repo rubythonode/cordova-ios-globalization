@@ -106,42 +106,9 @@
     // see if any options have been specified
     id items = [options valueForKey:@"options"];
     if (items && [items isKindOfClass:[NSMutableDictionary class]]) {
-        NSEnumerator* enumerator = [items keyEnumerator];
-        id key;
-        
-        // iterate through all the options
-        while ((key = [enumerator nextObject])) {
-            id item = [items valueForKey:key];
-            
-            // make sure that only string values are present
-            if ([item isKindOfClass:[NSString class]]) {
-                // get the desired format length
-                if ([key isEqualToString:@"formatLength"]) {
-                    if ([item isEqualToString:@"short"]) {
-                        style = kCFDateFormatterShortStyle;
-                    } else if ([item isEqualToString:@"medium"]) {
-                        style = kCFDateFormatterMediumStyle;
-                    } else if ([item isEqualToString:@"long"]) {
-                        style = kCFDateFormatterLongStyle;
-                    } else if ([item isEqualToString:@"full"]) {
-                        style = kCFDateFormatterFullStyle;
-                    }
-                }
-                // get the type of date and time to generate
-                else if ([key isEqualToString:@"selector"]) {
-                    if ([item isEqualToString:@"date"]) {
-                        dateStyle = style;
-                        timeStyle = kCFDateFormatterNoStyle;
-                    } else if ([item isEqualToString:@"time"]) {
-                        dateStyle = kCFDateFormatterNoStyle;
-                        timeStyle = style;
-                    } else if ([item isEqualToString:@"date and time"]) {
-                        dateStyle = style;
-                        timeStyle = style;
-                    }
-                }
-            }
-        }
+        style = [self getDateTimeFormatLength:items];
+        dateStyle = [self getDateFormatStyle:items withFormatLength:style];
+        timeStyle = [self getTimeFormatStyle:items withFormatLength:style];
     }
     
     // create the formatter using the user's current default locale and formats for dates and times
@@ -205,42 +172,9 @@
     // see if any options have been specified
     id items = [options valueForKey:@"options"];
     if (items && [items isKindOfClass:[NSMutableDictionary class]]) {
-        NSEnumerator* enumerator = [items keyEnumerator];
-        id key;
-        
-        // iterate through all the options
-        while ((key = [enumerator nextObject])) {
-            id item = [items valueForKey:key];
-            
-            // make sure that only string values are present
-            if ([item isKindOfClass:[NSString class]]) {
-                // get the desired format length
-                if ([key isEqualToString:@"formatLength"]) {
-                    if ([item isEqualToString:@"short"]) {
-                        style = kCFDateFormatterShortStyle;
-                    } else if ([item isEqualToString:@"medium"]) {
-                        style = kCFDateFormatterMediumStyle;
-                    } else if ([item isEqualToString:@"long"]) {
-                        style = kCFDateFormatterLongStyle;
-                    } else if ([item isEqualToString:@"full"]) {
-                        style = kCFDateFormatterFullStyle;
-                    }
-                }
-                // get the type of date and time to generate
-                else if ([key isEqualToString:@"selector"]) {
-                    if ([item isEqualToString:@"date"]) {
-                        dateStyle = style;
-                        timeStyle = kCFDateFormatterNoStyle;
-                    } else if ([item isEqualToString:@"time"]) {
-                        dateStyle = kCFDateFormatterNoStyle;
-                        timeStyle = style;
-                    } else if ([item isEqualToString:@"date and time"]) {
-                        dateStyle = style;
-                        timeStyle = style;
-                    }
-                }
-            }
-        }
+        style = [self getDateTimeFormatLength:items];
+        dateStyle = [self getDateFormatStyle:items withFormatLength:style];
+        timeStyle = [self getTimeFormatStyle:items withFormatLength:style];
     }
     
     // get the user's default settings for date and time formats
@@ -324,42 +258,9 @@
     id items = [options valueForKey:@"options"];
     
     if (items && [items isKindOfClass:[NSMutableDictionary class]]) {
-        NSEnumerator* enumerator = [items keyEnumerator];
-        id key;
-        
-        // iterate through all the options
-        while ((key = [enumerator nextObject])) {
-            id item = [items valueForKey:key];
-            
-            // make sure that only string values are present
-            if ([item isKindOfClass:[NSString class]]) {
-                // get the desired format length
-                if ([key isEqualToString:@"formatLength"]) {
-                    if ([item isEqualToString:@"short"]) {
-                        style = kCFDateFormatterShortStyle;
-                    } else if ([item isEqualToString:@"medium"]) {
-                        style = kCFDateFormatterMediumStyle;
-                    } else if ([item isEqualToString:@"long"]) {
-                        style = kCFDateFormatterLongStyle;
-                    } else if ([item isEqualToString:@"full"]) {
-                        style = kCFDateFormatterFullStyle;
-                    }
-                }
-                // get the type of date and time to generate
-                else if ([key isEqualToString:@"selector"]) {
-                    if ([item isEqualToString:@"date"]) {
-                        dateStyle = style;
-                        timeStyle = kCFDateFormatterNoStyle;
-                    } else if ([item isEqualToString:@"time"]) {
-                        dateStyle = kCFDateFormatterNoStyle;
-                        timeStyle = style;
-                    } else if ([item isEqualToString:@"date and time"]) {
-                        dateStyle = style;
-                        timeStyle = style;
-                    }
-                }
-            }
-        }
+        style = [self getDateTimeFormatLength:items];
+        dateStyle = [self getDateFormatStyle:items withFormatLength:style];
+        timeStyle = [self getTimeFormatStyle:items withFormatLength:style];
     }
     
     // get the user's default settings for date and time formats
@@ -895,6 +796,61 @@
         CFRelease(currentLocale);
         currentLocale = nil;
     }
+}
+
+#pragma mark - Helper methods
+
+- (CFDateFormatterStyle)getDateTimeFormatLength:(NSDictionary *)items
+{
+    NSString *formatLength = [items objectForKey:@"formatLength"];
+    
+    if ([formatLength respondsToSelector:@selector(isEqualToString:)]) {
+        if ([formatLength isEqualToString:@"short"]) {
+            return kCFDateFormatterShortStyle;
+        } else if ([formatLength isEqualToString:@"medium"]) {
+            return kCFDateFormatterMediumStyle;
+        } else if ([formatLength isEqualToString:@"long"]) {
+            return kCFDateFormatterLongStyle;
+        } else if ([formatLength isEqualToString:@"full"]) {
+            return kCFDateFormatterFullStyle;
+        }
+    }
+    
+    return kCFDateFormatterShortStyle;
+}
+
+- (CFDateFormatterStyle)getDateFormatStyle:(NSDictionary *)items withFormatLength:(CFDateFormatterStyle)formatLength
+{
+    NSString *selector = [items objectForKey:@"selector"];
+    
+    if ([selector respondsToSelector:@selector(isEqualToString:)]) {
+        if ([selector isEqualToString:@"date"]) {
+            return formatLength;
+        } else if ([selector isEqualToString:@"time"]) {
+            return kCFDateFormatterNoStyle;
+        } else if ([selector isEqualToString:@"date and time"]) {
+            return formatLength;
+        }
+    }
+    
+    return kCFDateFormatterShortStyle;
+}
+
+- (CFDateFormatterStyle)getTimeFormatStyle:(NSDictionary *)items withFormatLength:(CFDateFormatterStyle)formatLength
+{
+    NSString *selector = [items objectForKey:@"selector"];
+    
+    if ([selector respondsToSelector:@selector(isEqualToString:)]) {
+        if ([selector isEqualToString:@"date"]) {
+            return kCFDateFormatterNoStyle;
+        } else if ([selector isEqualToString:@"time"]) {
+            return formatLength;
+        } else if ([selector isEqualToString:@"date and time"]) {
+            return formatLength;
+        }
+    }
+    
+    return kCFDateFormatterShortStyle;
 }
 
 @end
