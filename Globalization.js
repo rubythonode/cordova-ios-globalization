@@ -23,7 +23,7 @@ Globalization.prototype.getPreferredLanguage = function(successCB, failureCB)
         return;
     }
     
-	Codova.exec(successCB, failureCB, "Globalization","getPreferredLanguage", []);
+	Cordova.exec(successCB, failureCB, "Globalization","getPreferredLanguage", []);
 };
 
 /**
